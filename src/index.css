@@ -5,35 +5,44 @@
   font-family: 'Dank Mono';
 }
 .main-container{
-  background-color: hsl(0, 0%, 75%);
   height: 100vh;
   padding: 3px;
-  border: 2px solid;
   display: flex;
 }
 .nav-container{
-  background-color: hsl(0, 0%,25%);
   border: 2px solid;
   flex:1;
 }
 .menu-container{
-  background-color: hsl(0, 90%,25%);
-  border: 2px solid;
   padding: 3px;
   flex:6;
   display: flex;
   flex-direction: column;
 }
 .top-search{
-  background-color: hsl(0, 90%,75%);
-  border: 2px solid;
   flex:1;
-}
-.table-results{
-  background-color:hsl(0, 20%, 75%);
-  border: 2px solid;
-  flex: 6;
   display: flex;
   justify-content: center;
   align-items: center;
+}
+.action-top{
+  width: 500px;
+  display: flex;
+  justify-content: space-between;
+}
+table{
+  text-align: center;
+}
+.table-results{
+  flex: 8;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 10px;
+}
+.input{
+  width: 200px;
+}
+.btn-warning{
+  margin-right: 10px;
 }
