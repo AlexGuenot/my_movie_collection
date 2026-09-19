@@ -1,0 +1,14 @@
+.top-search{
+  flex:1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.action-top{
+  width: 500px;
+  display: flex;
+  justify-content: space-between;
+}
+.input{
+  width: 200px;
+}
