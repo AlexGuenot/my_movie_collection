@@ -1,6 +1,13 @@
 import './MoviesTable.css'
 import data from '../data/MoviesData.json'
-function MoviesTable() {
+function MoviesTable({ searchText }) {
+  const normalizedSearch = searchText.trim().toLowerCase();
+  const filteredMovies = data.filter((movie) => {
+    return [movie.title, movie.director].some((value) =>
+      value.toLowerCase().includes(normalizedSearch)
+    );
+  });
+
   return (
         <div className="table-results">
           <div className="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
@@ -16,7 +23,7 @@ function MoviesTable() {
               </thead>
               {/* data mapping */}
               <tbody>
-                {data.map((item) => (
+                {filteredMovies.map((item) => (
                   <tr key={item.id}>
                     <td>{item.id}</td>
                     <td>{item.title}</td>
@@ -27,6 +34,11 @@ function MoviesTable() {
                     </td>
                   </tr>
                 ))}
+                {filteredMovies.length === 0 && (
+                  <tr>
+                    <td colSpan="4">No movies found.</td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

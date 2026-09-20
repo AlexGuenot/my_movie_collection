@@ -1,7 +1,8 @@
 import './TopSection.css'
 
-function TopSearch() {
+function TopSection({ searchText, onSearchChange }) {
   return (
+    <>
     <div className="top-search">
       <div className="action-top">
           <label className="input">
@@ -15,13 +16,13 @@ function TopSearch() {
                 <path d="m21 21-4.3-4.3"></path>
               </g>
             </svg>
-            <input type="search" required placeholder="Search movie" className="input-sm" />
+            <input type="search" value={searchText} onChange={(event) => onSearchChange(event.target.value)} placeholder="Search movie" className="input-sm" />
           </label>
           <button className="btn btn-success">Add Movie</button>  
       </div>
-          
     </div>
+    </>
   )
 }
 
-export default TopSearch
+export default TopSection
