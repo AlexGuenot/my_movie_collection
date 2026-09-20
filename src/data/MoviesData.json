@@ -1,0 +1,22 @@
+[
+  {
+    "id":1,
+    "title":"Fight Club",
+    "director":"David Fincher"
+  },
+  {
+    "id":2,
+    "title":"Pulp Fiction",
+    "director":"Quentin Tarantino"
+  },
+  {
+    "id":3,
+    "title":"The Dark Knight",
+    "director":"Christopher Nolan"
+  },
+  {
+    "id":4,
+    "title":"Spider-Man : Into the Spider-Verse",
+    "director":"Bob Persichetti" 
+  }
+]

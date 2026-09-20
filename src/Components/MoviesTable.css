@@ -1,0 +1,13 @@
+table{
+  text-align: center;
+}
+.table-results{
+  flex: 8;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 10px;
+}
+.btn-warning{
+  margin-right: 10px;
+}
