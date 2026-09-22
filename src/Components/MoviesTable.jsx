@@ -1,5 +1,6 @@
 import './MoviesTable.css'
 import data from '../data/MoviesData.json'
+
 function MoviesTable({ searchText }) {
   const normalizedSearch = searchText.trim().toLowerCase();
   const filteredMovies = data.filter((movie) => {
