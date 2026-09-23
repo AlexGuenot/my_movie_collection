@@ -35,6 +35,7 @@ function MoviesTable({ searchText }) {
                   <th></th>
                   <th>Movie Title</th>
                   <th>Director</th>
+                  <th>Release</th>
                   <th>Action</th>
                 </tr>
               </thead>
@@ -45,6 +46,7 @@ function MoviesTable({ searchText }) {
                     <td>{item.id}</td>
                     <td>{item.title}</td>
                     <td>{item.director}</td>
+                    <td>{item.release_year}</td>
                     <td>
                         <button className="btn btn-outlined btn-warning">Edit</button>
                         <button className="btn btn-outlined btn-error">Delete</button>
