@@ -2,7 +2,7 @@ import './MoviesTable.css'
 import { useEffect } from 'react'
 import { supabase } from '../createClient.js'
 
-function MoviesTable({ searchText, movies, onMoviesLoaded }) {
+function MoviesTable({ searchText, movies, onMoviesLoaded, onMovieDeleted }) {
   const normalizedSearch = searchText.trim().toLowerCase();
   const filteredMovies = movies.filter((movie) => {
     return [movie.title, movie.director].some((value) =>
@@ -25,6 +25,27 @@ function MoviesTable({ searchText, movies, onMoviesLoaded }) {
     }
     onMoviesLoaded(data ?? [])
   }
+
+  async function deleteMovie(movieId) {
+    const { data, error } = await supabase
+      .from('movies')
+      .delete()
+      .eq('id', movieId)
+      .select('id')
+
+    if (error) {
+      console.error(error)
+      return
+    }
+
+    if (!data?.length) {
+      console.error('No movie was deleted. Check the Supabase DELETE policy for the movies table.')
+      return
+    }
+
+    onMovieDeleted(movieId)
+  }
+
   return (
         <div className="table-results">
           <div className="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
@@ -46,8 +67,13 @@ function MoviesTable({ searchText, movies, onMoviesLoaded }) {
                     <td>{item.director}</td>
                     <td>{item.release_year}</td>
                     <td>
-                        <button className="btn btn-outlined btn-warning">Edit</button>
-                        <button className="btn btn-outlined btn-error">Delete</button>
+                        <button className="btn btn-outlined btn-info">Details</button>
+                        <button
+                          className="btn btn-outlined btn-error"
+                          onClick={() => deleteMovie(item.id)}
+                        >
+                          Delete
+                        </button>
                     </td>
                   </tr>
                 ))}

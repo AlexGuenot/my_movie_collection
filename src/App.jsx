@@ -14,11 +14,20 @@ function App() {
     })
   }
 
+  function handleMovieDeleted(movieId) {
+    setMovies((currentMovies) => currentMovies.filter((movie) => movie.id !== movieId))
+  }
+
   return (
   <div className="main-container">
       <div className="menu-container">
         <TopSection searchText={searchText} onSearchChange={setSearchText} onMovieAdded={(movie) => setMovies((currentMovies) => [...currentMovies, movie])} />
-        <MoviesTable searchText={searchText} movies={movies} onMoviesLoaded={handleMoviesLoaded} />
+        <MoviesTable
+          searchText={searchText}
+          movies={movies}
+          onMoviesLoaded={handleMoviesLoaded}
+          onMovieDeleted={handleMovieDeleted}
+        />
       </div>
   </div>
   )

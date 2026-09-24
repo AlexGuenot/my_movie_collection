@@ -65,8 +65,8 @@ function TopSection({ searchText, onSearchChange, onMovieAdded }) {
               <h3 className="font-bold text-lg">Add a new movie to your collection !</h3>
               <form onSubmit={handleSubmit} className="flex flex-col gap-3 mt-4">
                 <input type="text" name="title" value={movie.title} onChange={handleChange} className="input" placeholder="Title" required />
-                <input type="text" name="director" value={movie.director} onChange={handleChange} className="input" placeholder="Director" required />
-                <input type="number" name="releaseYear" value={movie.releaseYear} onChange={handleChange} className="input" placeholder="Release Year" min="1888" required />
+                <input type="text" name="director" value={movie.director} onChange={handleChange} className="input" placeholder="Director"/>
+                <input type="number" name="releaseYear" value={movie.releaseYear} onChange={handleChange} className="input" placeholder="Release Year" min="1888"/>
                 {errorMessage && <p role="alert">{errorMessage}</p>}
                 <button type="submit" className="btn btn-success" disabled={isSaving}>
                   {isSaving ? 'Adding...' : 'Add Movie'}
