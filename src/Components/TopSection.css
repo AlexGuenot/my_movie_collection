@@ -12,3 +12,14 @@
 .input{
   width: 200px;
 }
+.modal{
+  align-items: flex-start;
+  padding-top: 5rem;
+}
+.modal-box{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+}

@@ -18,7 +18,18 @@ function TopSection({ searchText, onSearchChange }) {
             </svg>
             <input type="search" value={searchText} onChange={(event) => onSearchChange(event.target.value)} placeholder="Search movie" className="input-sm" />
           </label>
-          <button className="btn btn-success">Add Movie</button>  
+          <button className="btn btn-success" onClick={()=>document.getElementById('my_modal_3').showModal()}>Add Movie</button>
+          <dialog id="my_modal_3" className="modal">
+            <div className="modal-box">
+              <form method="dialog">
+                <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+              </form>
+              <h3 className="font-bold text-lg">Add a new movie to your collection !</h3>
+              <input type="text" className="input" placeholder="Title" />
+              <input type="text" className="input" placeholder="Director" />
+              <input type="text" className="input" placeholder="Release Year" />
+            </div>
+        </dialog>  
       </div>
     </div>
     </>

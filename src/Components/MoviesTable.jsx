@@ -32,7 +32,6 @@ function MoviesTable({ searchText }) {
               {/* head */}
               <thead>
                 <tr>
-                  <th></th>
                   <th>Movie Title</th>
                   <th>Director</th>
                   <th>Release</th>
@@ -43,7 +42,6 @@ function MoviesTable({ searchText }) {
               <tbody>
                 {filteredMovies.map((item) => (
                   <tr key={item.id}>
-                    <td>{item.id}</td>
                     <td>{item.title}</td>
                     <td>{item.director}</td>
                     <td>{item.release_year}</td>
