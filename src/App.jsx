@@ -5,6 +5,7 @@ import MoviesTable from './Components/MoviesTable.jsx'
 function App() {
   const [searchText, setSearchText] = useState("");
   const [movies, setMovies] = useState([]);
+  const [collectionView, setCollectionView] = useState('owned');
   
   function handleMoviesLoaded(loadedMovies) {
     setMovies((currentMovies) => {
@@ -18,15 +19,27 @@ function App() {
     setMovies((currentMovies) => currentMovies.filter((movie) => movie.id !== movieId))
   }
 
+  function handleMovieRestored(movie) {
+    setMovies((currentMovies) => [...currentMovies, movie])
+  }
+
   return (
   <div className="main-container">
       <div className="menu-container">
-        <TopSection searchText={searchText} onSearchChange={setSearchText} onMovieAdded={(movie) => setMovies((currentMovies) => [...currentMovies, movie])} />
+        <TopSection
+          searchText={searchText}
+          onSearchChange={setSearchText}
+          collectionView={collectionView}
+          onCollectionViewChange={setCollectionView}
+          onMovieAdded={(movie) => setMovies((currentMovies) => [...currentMovies, movie])}
+        />
         <MoviesTable
           searchText={searchText}
           movies={movies}
+          collectionView={collectionView}
           onMoviesLoaded={handleMoviesLoaded}
           onMovieDeleted={handleMovieDeleted}
+          onMovieRestored={handleMovieRestored}
         />
       </div>
   </div>

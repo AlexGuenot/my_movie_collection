@@ -1,10 +1,16 @@
 import './MoviesTable.css'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '../createClient.js'
 
-function MoviesTable({ searchText, movies, onMoviesLoaded, onMovieDeleted }) {
+function MoviesTable({ searchText, movies, collectionView, onMoviesLoaded, onMovieDeleted, onMovieRestored }) {
+  const [deletedMovie, setDeletedMovie] = useState(null)
+  const [isUndoing, setIsUndoing] = useState(false)
+  const [isDismissing, setIsDismissing] = useState(false)
   const normalizedSearch = searchText.trim().toLowerCase();
-  const filteredMovies = movies.filter((movie) => {
+  const moviesInView = movies.filter((movie) =>
+    collectionView === 'cart' ? movie.is_owned === false : movie.is_owned !== false
+  );
+  const filteredMovies = moviesInView.filter((movie) => {
     return [movie.title, movie.director].some((value) =>
       value?.toLowerCase().includes(normalizedSearch)
     );
@@ -13,6 +19,15 @@ function MoviesTable({ searchText, movies, onMoviesLoaded, onMovieDeleted }) {
   useEffect(() => {
     fetchMovies()
   },[])
+
+  useEffect(() => {
+    if (!deletedMovie) {
+      return undefined
+    }
+
+    const timeoutId = setTimeout(() => setIsDismissing(true), 4700)
+    return () => clearTimeout(timeoutId)
+  }, [deletedMovie])
 
   async function fetchMovies(){
     const { data, error } = await supabase
@@ -31,7 +46,7 @@ function MoviesTable({ searchText, movies, onMoviesLoaded, onMovieDeleted }) {
       .from('movies')
       .delete()
       .eq('id', movieId)
-      .select('id')
+      .select()
 
     if (error) {
       console.error(error)
@@ -44,9 +59,41 @@ function MoviesTable({ searchText, movies, onMoviesLoaded, onMovieDeleted }) {
     }
 
     onMovieDeleted(movieId)
+    setIsDismissing(false)
+    setDeletedMovie(data[0])
+  }
+
+  async function undoDelete() {
+    if (!deletedMovie) {
+      return
+    }
+
+    setIsUndoing(true)
+    const { data, error } = await supabase
+      .from('movies')
+      .insert(deletedMovie)
+      .select()
+      .single()
+    setIsUndoing(false)
+
+    if (error) {
+      console.error(error)
+      return
+    }
+
+    onMovieRestored(data)
+    setIsDismissing(true)
+  }
+
+  function handleToastAnimationEnd() {
+    if (isDismissing) {
+      setDeletedMovie(null)
+      setIsDismissing(false)
+    }
   }
 
   return (
+    <>
         <div className="table-results">
           <div className="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
             <table className="table">
@@ -86,6 +133,19 @@ function MoviesTable({ searchText, movies, onMoviesLoaded, onMovieDeleted }) {
             </table>
           </div>
         </div>
+        {deletedMovie && (
+          <div
+            className={`delete-toast ${isDismissing ? 'is-dismissing' : ''}`}
+            role="status"
+            onAnimationEnd={handleToastAnimationEnd}
+          >
+            <span>Movie deleted.</span>
+            <button className="btn btn-sm btn-ghost" onClick={undoDelete} disabled={isUndoing}>
+              {isUndoing ? 'Restoring...' : 'Undo'}
+            </button>
+          </div>
+        )}
+    </>
   )
 }
 

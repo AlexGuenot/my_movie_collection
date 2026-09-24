@@ -12,6 +12,17 @@
 .input{
   width: 200px;
 }
+.collection-switch{
+  display: flex;
+  gap: 2px;
+}
+.modal-collection-switch{
+  width: 100%;
+  justify-content: space-between;
+}
+.collection-switch .btn-ghost:hover{
+  background-color: rgba(0, 0, 0, 0.12);
+}
 .modal{
   align-items: flex-start;
   padding-top: 5rem;
