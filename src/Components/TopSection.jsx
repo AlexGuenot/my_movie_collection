@@ -1,6 +1,44 @@
 import './TopSection.css'
+import { useState } from 'react'
+import { supabase } from '../createClient.js'
 
-function TopSection({ searchText, onSearchChange }) {
+function TopSection({ searchText, onSearchChange, onMovieAdded }) {
+  const [movie, setMovie] = useState({ title: '', director: '', releaseYear: '' })
+  const [isSaving, setIsSaving] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
+
+  function handleChange(event) {
+    setMovie({ ...movie, [event.target.name]: event.target.value })
+  }
+
+  async function handleSubmit(event) {
+    event.preventDefault()
+    setIsSaving(true)
+    setErrorMessage('')
+
+    const { data, error } = await supabase
+      .from('movies')
+      .insert({
+        title: movie.title,
+        director: movie.director,
+        release_year: Number(movie.releaseYear),
+      })
+      .select()
+      .single()
+
+    setIsSaving(false)
+
+    if (error) {
+      console.error(error)
+      setErrorMessage('Could not add this movie.')
+      return
+    }
+
+    onMovieAdded(data)
+    setMovie({ title: '', director: '', releaseYear: '' })
+    document.getElementById('my_modal_3').close()
+  }
+
   return (
     <>
     <div className="top-search">
@@ -25,9 +63,15 @@ function TopSection({ searchText, onSearchChange }) {
                 <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
               </form>
               <h3 className="font-bold text-lg">Add a new movie to your collection !</h3>
-              <input type="text" className="input" placeholder="Title" />
-              <input type="text" className="input" placeholder="Director" />
-              <input type="text" className="input" placeholder="Release Year" />
+              <form onSubmit={handleSubmit} className="flex flex-col gap-3 mt-4">
+                <input type="text" name="title" value={movie.title} onChange={handleChange} className="input" placeholder="Title" required />
+                <input type="text" name="director" value={movie.director} onChange={handleChange} className="input" placeholder="Director" required />
+                <input type="number" name="releaseYear" value={movie.releaseYear} onChange={handleChange} className="input" placeholder="Release Year" min="1888" required />
+                {errorMessage && <p role="alert">{errorMessage}</p>}
+                <button type="submit" className="btn btn-success" disabled={isSaving}>
+                  {isSaving ? 'Adding...' : 'Add Movie'}
+                </button>
+              </form>
             </div>
         </dialog>  
       </div>

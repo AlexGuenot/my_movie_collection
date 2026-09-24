@@ -1,10 +1,9 @@
 import './MoviesTable.css'
-import {useState,useEffect} from 'react'
+import { useEffect } from 'react'
 import { supabase } from '../createClient.js'
 
-function MoviesTable({ searchText }) {
+function MoviesTable({ searchText, movies, onMoviesLoaded }) {
   const normalizedSearch = searchText.trim().toLowerCase();
-  const [movies,setMovies] = useState([])
   const filteredMovies = movies.filter((movie) => {
     return [movie.title, movie.director].some((value) =>
       value?.toLowerCase().includes(normalizedSearch)
@@ -14,6 +13,7 @@ function MoviesTable({ searchText }) {
   useEffect(() => {
     fetchMovies()
   },[])
+
   async function fetchMovies(){
     const { data, error } = await supabase
       .from('movies')
@@ -23,7 +23,7 @@ function MoviesTable({ searchText }) {
       console.error(error)
       return
     }
-    setMovies(data ?? [])
+    onMoviesLoaded(data ?? [])
   }
   return (
         <div className="table-results">
