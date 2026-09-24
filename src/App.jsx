@@ -23,6 +23,12 @@ function App() {
     setMovies((currentMovies) => [...currentMovies, movie])
   }
 
+  function handleMovieUpdated(updatedMovie) {
+    setMovies((currentMovies) => currentMovies.map((movie) =>
+      movie.id === updatedMovie.id ? updatedMovie : movie
+    ))
+  }
+
   return (
   <div className="main-container">
       <div className="menu-container">
@@ -40,6 +46,7 @@ function App() {
           onMoviesLoaded={handleMoviesLoaded}
           onMovieDeleted={handleMovieDeleted}
           onMovieRestored={handleMovieRestored}
+          onMovieUpdated={handleMovieUpdated}
         />
       </div>
   </div>
