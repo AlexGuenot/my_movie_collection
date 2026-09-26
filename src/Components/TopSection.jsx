@@ -12,12 +12,17 @@ function TopSection({ searchText, onSearchChange, collectionView, onCollectionVi
   const [movie, setMovie] = useState({ title: '', director: '', releaseYear: '', posterUrl: '' })
   const [movieCollection, setMovieCollection] = useState('owned')
   const [movieSuggestions, setMovieSuggestions] = useState([])
+  const [selectedSuggestionTitle, setSelectedSuggestionTitle] = useState('')
   const [suggestionError, setSuggestionError] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
     const query = movie.title.trim()
+    if (selectedSuggestionTitle && query.toLowerCase() === selectedSuggestionTitle.toLowerCase()) {
+      return undefined
+    }
+
     if (query.length < 2 || !tmdbApiKey) {
       setMovieSuggestions([])
       setSuggestionError('')
@@ -59,13 +64,14 @@ function TopSection({ searchText, onSearchChange, collectionView, onCollectionVi
       clearTimeout(timeoutId)
       controller.abort()
     }
-  }, [movie.title])
+  }, [movie.title, selectedSuggestionTitle])
 
   function handleChange(event) {
     const { name, value } = event.target
     const nextMovie = { ...movie, [name]: value }
 
     if (name === 'title') {
+      setSelectedSuggestionTitle('')
       const posterSuggestion = posterSuggestions[value.trim().toLowerCase()]
       if (posterSuggestion) {
         nextMovie.posterUrl = posterSuggestion
@@ -76,6 +82,8 @@ function TopSection({ searchText, onSearchChange, collectionView, onCollectionVi
   }
 
   async function selectMovieSuggestion(suggestion) {
+    setSelectedSuggestionTitle(suggestion.title)
+    setSuggestionError('')
     setMovie({
       ...movie,
       title: suggestion.title,
@@ -143,6 +151,7 @@ function TopSection({ searchText, onSearchChange, collectionView, onCollectionVi
 
     onMovieAdded(data)
     setMovie({ title: '', director: '', releaseYear: '', posterUrl: '' })
+    setSelectedSuggestionTitle('')
     document.getElementById('my_modal_3').close()
   }
 

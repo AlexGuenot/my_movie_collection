@@ -18,6 +18,7 @@ function MoviesTable({ searchText, movies, collectionView, onMoviesLoaded, onMov
   const [isDismissing, setIsDismissing] = useState(false)
   const [loadError, setLoadError] = useState('')
   const [isLoading, setIsLoading] = useState(true)
+  const [viewMode, setViewMode] = useState('table')
   const normalizedSearch = searchText.trim().toLowerCase();
   const moviesInView = movies.filter((movie) =>
     collectionView === 'cart' ? isMovieInCart(movie) : !isMovieInCart(movie)
@@ -181,50 +182,101 @@ function MoviesTable({ searchText, movies, collectionView, onMoviesLoaded, onMov
 
   return (
     <>
-        <div className="table-results">
-          <div className="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
-            {loadError && <p role="alert">{loadError}</p>}
-            <table className="table">
-              {/* head */}
-              <thead>
-                <tr>
-                  <th>Movie Title</th>
-                  <th>Director</th>
-                  <th>Release</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              {/* data mapping */}
-              <tbody>
-                {filteredMovies.map((item) => (
-                  <tr key={item.id}>
-                    <td>{item.title}</td>
-                    <td>{item.director || 'Unknown'}</td>
-                    <td>{item.release_year || 'Unknown'}</td>
-                    <td>
-                        <button className="btn btn-outlined btn-info" onClick={() => openDetails(item)}>Details</button>
+        <div className="results-toolbar">
+          <div className="view-switch" role="group" aria-label="Movie view">
+            <button
+              type="button"
+              className={`btn btn-sm ${viewMode === 'table' ? 'btn-success' : 'btn-ghost'}`}
+              aria-label="Table view"
+              aria-pressed={viewMode === 'table'}
+              title="Table view"
+              onClick={() => setViewMode('table')}
+            >
+              <span aria-hidden="true">☷</span>
+            </button>
+            <button
+              type="button"
+              className={`btn btn-sm ${viewMode === 'cards' ? 'btn-success' : 'btn-ghost'}`}
+              aria-label="Card view"
+              aria-pressed={viewMode === 'cards'}
+              title="Card view"
+              onClick={() => setViewMode('cards')}
+            >
+              <span aria-hidden="true">▦</span>
+            </button>
+          </div>
+        </div>
+        <div className={`table-results ${viewMode === 'cards' ? 'cards-results' : ''}`}>
+          {loadError && <p role="alert">{loadError}</p>}
+          {viewMode === 'table' ? (
+            <div className="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Movie Title</th>
+                    <th>Director</th>
+                    <th>Release</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredMovies.map((item) => (
+                    <tr key={item.id}>
+                      <td>{item.title}</td>
+                      <td>{item.director || 'Unknown'}</td>
+                      <td>{item.release_year || 'Unknown'}</td>
+                      <td>
+                        <button className="btn btn-outlined btn-info" onClick={() => openDetails(item)}>Edit</button>
                         <button
                           className="btn btn-outlined btn-error"
                           onClick={() => deleteMovie(item.id)}
                         >
                           Delete
                         </button>
-                    </td>
-                  </tr>
-                ))}
-                {isLoading && (
-                  <tr>
-                    <td colSpan="4">Loading movies...</td>
-                  </tr>
-                )}
-                {!isLoading && filteredMovies.length === 0 && (
-                  <tr>
-                    <td colSpan="4">No movies found.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {isLoading && (
+                    <tr>
+                      <td colSpan="4">Loading movies...</td>
+                    </tr>
+                  )}
+                  {!isLoading && filteredMovies.length === 0 && (
+                    <tr>
+                      <td colSpan="4">No movies found.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="movie-card-grid">
+              {filteredMovies.map((item) => {
+                const posterUrl = getPosterUrl(item)
+                return (
+                  <article
+                    className={`movie-card ${posterUrl ? '' : 'movie-card-no-poster'}`}
+                    key={item.id}
+                    style={posterUrl ? { backgroundImage: `url(${posterUrl})` } : undefined}
+                  >
+                    <div className="movie-card-content">
+                      <div>
+                        <h2>{item.title}</h2>
+                        <p>{item.director || 'Director unknown'}</p>
+                        <p>{item.release_year || 'Release year unknown'}</p>
+                      </div>
+                      <div className="movie-card-actions">
+                        <button className="btn btn-sm btn-info" onClick={() => openDetails(item)}>Edit</button>
+                        <button className="btn btn-sm btn-error" onClick={() => deleteMovie(item.id)}>Delete</button>
+                      </div>
+                    </div>
+                  </article>
+                )
+              })}
+              {isLoading && <p>Loading movies...</p>}
+              {!isLoading && filteredMovies.length === 0 && <p>No movies found.</p>}
+            </div>
+          )}
         </div>
         <dialog id="movie_details_modal" className="modal">
           <div className="modal-box">
