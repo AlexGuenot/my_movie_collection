@@ -1,5 +1,5 @@
 import './MoviesTable.css'
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { supabase } from '../createClient.js'
 
 const moviePosters = {
@@ -19,6 +19,10 @@ function MoviesTable({ searchText, movies, collectionView, onMoviesLoaded, onMov
   const [loadError, setLoadError] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [viewMode, setViewMode] = useState('table')
+  const [flippedCardId, setFlippedCardId] = useState(null)
+  const [focusedCardId, setFocusedCardId] = useState(null)
+  const [activeFocusedCardId, setActiveFocusedCardId] = useState(null)
+  const [cardDraft, setCardDraft] = useState(null)
   const normalizedSearch = searchText.trim().toLowerCase();
   const moviesInView = movies.filter((movie) =>
     collectionView === 'cart' ? isMovieInCart(movie) : !isMovieInCart(movie)
@@ -96,6 +100,9 @@ function MoviesTable({ searchText, movies, collectionView, onMoviesLoaded, onMov
     }
 
     onMovieDeleted(movieId)
+    if (focusedCardId === movieId) {
+      closeFocusedCard()
+    }
     setIsDismissing(false)
     setDeletedMovie(data[0])
   }
@@ -180,6 +187,71 @@ function MoviesTable({ searchText, movies, collectionView, onMoviesLoaded, onMov
     onMovieUpdated(updatedMovie)
   }
 
+  function startCardEdit(movie, event) {
+    event.stopPropagation()
+    const card = event.currentTarget.closest('.movie-card')
+    const bounds = card.getBoundingClientRect()
+    card.style.setProperty('--card-start-left', `${bounds.left}px`)
+    card.style.setProperty('--card-start-top', `${bounds.top}px`)
+    card.style.setProperty('--card-start-width', `${bounds.width}px`)
+    card.style.setProperty('--card-start-height', `${bounds.height}px`)
+    setSelectedMovie(movie)
+    setEditingField(null)
+    setSaveError('')
+    setCardDraft({
+      title: movie.title ?? '',
+      director: movie.director ?? '',
+      releaseYear: movie.release_year ?? '',
+      collection: isMovieInCart(movie) ? 'cart' : 'owned',
+      posterUrl: movie.poster_url ?? getPosterUrl(movie) ?? '',
+    })
+    setFocusedCardId(movie.id)
+    requestAnimationFrame(() => setActiveFocusedCardId(movie.id))
+    setTimeout(() => setFlippedCardId(movie.id), 720)
+  }
+
+  function closeFocusedCard() {
+    setFocusedCardId(null)
+    setActiveFocusedCardId(null)
+    setFlippedCardId(null)
+    setEditingField(null)
+    setSaveError('')
+    setCardDraft(null)
+  }
+
+  async function saveCardChanges(movie) {
+    if (!cardDraft) {
+      return
+    }
+
+    setIsSaving(true)
+    setSaveError('')
+    const changes = {
+      title: cardDraft.title,
+      director: cardDraft.director,
+      release_year: String(cardDraft.releaseYear).trim() ? Number(cardDraft.releaseYear) : null,
+      is_owned: cardDraft.collection === 'owned',
+      poster_url: cardDraft.posterUrl,
+    }
+    const { data, error } = await supabase
+      .from('movies')
+      .update(changes)
+      .eq('id', movie.id)
+      .select('id')
+
+    if (error || !data?.length) {
+      console.error(error)
+      setIsSaving(false)
+      setSaveError(error?.message ?? 'Could not save this movie.')
+      return
+    }
+
+    const updatedMovie = { ...movie, ...changes }
+    onMovieUpdated(updatedMovie)
+    setIsSaving(false)
+    closeFocusedCard()
+  }
+
   return (
     <>
         <div className="results-toolbar">
@@ -202,7 +274,7 @@ function MoviesTable({ searchText, movies, collectionView, onMoviesLoaded, onMov
               title="Card view"
               onClick={() => setViewMode('cards')}
             >
-              <span aria-hidden="true">▦</span>
+              <span aria-hidden="true">▤</span>
             </button>
           </div>
         </div>
@@ -254,23 +326,60 @@ function MoviesTable({ searchText, movies, collectionView, onMoviesLoaded, onMov
               {filteredMovies.map((item) => {
                 const posterUrl = getPosterUrl(item)
                 return (
-                  <article
-                    className={`movie-card ${posterUrl ? '' : 'movie-card-no-poster'}`}
-                    key={item.id}
-                    style={posterUrl ? { backgroundImage: `url(${posterUrl})` } : undefined}
-                  >
-                    <div className="movie-card-content">
-                      <div>
-                        <h2>{item.title}</h2>
-                        <p>{item.director || 'Director unknown'}</p>
-                        <p>{item.release_year || 'Release year unknown'}</p>
+                              <Fragment key={item.id}>
+                                {focusedCardId === item.id && <div className="movie-card-placeholder" aria-hidden="true" />}
+                                <article
+                                  className={`movie-card ${flippedCardId === item.id ? 'is-flipped' : ''} ${focusedCardId === item.id ? 'is-focused' : ''} ${activeFocusedCardId === item.id ? 'is-focused-active' : ''}`}
+                                  aria-label={`${item.title} movie card`}
+                                >
+                    <div className="movie-card-inner">
+                      <div
+                        className={`movie-card-face movie-card-front ${posterUrl ? '' : 'movie-card-no-poster'}`}
+                        style={posterUrl ? { backgroundImage: `url(${posterUrl})` } : undefined}
+                      >
+                        <div className="movie-card-content">
+                          {focusedCardId !== item.id && (
+                            <div className="movie-card-actions">
+                              <button type="button" className="btn btn-sm btn-info" onClick={(event) => startCardEdit(item, event)}>Edit</button>
+                              <button type="button" className="btn btn-sm btn-error" onClick={(event) => { event.stopPropagation(); deleteMovie(item.id) }}>Delete</button>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div className="movie-card-actions">
-                        <button className="btn btn-sm btn-info" onClick={() => openDetails(item)}>Edit</button>
-                        <button className="btn btn-sm btn-error" onClick={() => deleteMovie(item.id)}>Delete</button>
+                      <div className="movie-card-face movie-card-back">
+                        {focusedCardId === item.id && <div className="movie-card-details">
+                          <label className="movie-card-edit-field">
+                            <strong>Title</strong>
+                            <input className="input input-sm" type="text" value={focusedCardId === item.id && cardDraft ? cardDraft.title : item.title} onChange={(event) => setCardDraft((draft) => ({ ...draft, title: event.target.value }))} />
+                          </label>
+                          <label className="movie-card-edit-field">
+                            <strong>Director</strong>
+                            <input className="input input-sm" type="text" value={focusedCardId === item.id && cardDraft ? cardDraft.director : item.director ?? ''} onChange={(event) => setCardDraft((draft) => ({ ...draft, director: event.target.value }))} />
+                          </label>
+                          <label className="movie-card-edit-field">
+                            <strong>Release</strong>
+                            <input className="input input-sm" type="number" min="1888" value={focusedCardId === item.id && cardDraft ? cardDraft.releaseYear : item.release_year ?? ''} onChange={(event) => setCardDraft((draft) => ({ ...draft, releaseYear: event.target.value }))} />
+                          </label>
+                          <label className="movie-card-edit-field">
+                            <strong>Collection</strong>
+                            <select className="select select-sm" value={focusedCardId === item.id && cardDraft ? cardDraft.collection : isMovieInCart(item) ? 'cart' : 'owned'} onChange={(event) => setCardDraft((draft) => ({ ...draft, collection: event.target.value }))}>
+                              <option value="owned">Owned</option>
+                              <option value="cart">In cart</option>
+                            </select>
+                          </label>
+                          <label className="movie-card-edit-field">
+                            <strong>Poster URL</strong>
+                            <input className="input input-sm" type="url" value={focusedCardId === item.id && cardDraft ? cardDraft.posterUrl : getPosterUrl(item) ?? ''} onChange={(event) => setCardDraft((draft) => ({ ...draft, posterUrl: event.target.value }))} />
+                          </label>
+                          {saveError && <p className="movie-card-save-error" role="alert">{saveError}</p>}
+                          <button type="button" className="btn btn-sm btn-success movie-card-save-button" onClick={() => saveCardChanges(item)} disabled={isSaving}>
+                            {isSaving ? 'Saving...' : 'Save'}
+                          </button>
+                        </div>}
                       </div>
                     </div>
                   </article>
+                </Fragment>
                 )
               })}
               {isLoading && <p>Loading movies...</p>}
@@ -278,7 +387,15 @@ function MoviesTable({ searchText, movies, collectionView, onMoviesLoaded, onMov
             </div>
           )}
         </div>
-        <dialog id="movie_details_modal" className="modal">
+        <dialog
+          id="movie_details_modal"
+          className="modal"
+          onClose={() => {
+            setFocusedCardId(null)
+            setActiveFocusedCardId(null)
+            setFlippedCardId(null)
+          }}
+        >
           <div className="modal-box">
             <form method="dialog">
               <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
